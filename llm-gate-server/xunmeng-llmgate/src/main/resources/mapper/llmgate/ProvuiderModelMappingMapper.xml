@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunmeng.llmgate.mapper.ProvuiderModelMappingMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xunmeng.llmgate.pojo.ProvuiderModelMapping">
+        <id column="id" property="id" />
+        <result column="provider_id" property="providerId" />
+        <result column="model_name" property="modelName" />
+        <result column="model_name_alias" property="modelNameAlias" />
+        <result column="max_concurrency" property="maxConcurrency" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <resultMap id="MappingWithProviderResult" type="com.xunmeng.llmgate.pojo.dto.ProviderModelMappingDTO">
+        <id column="id" property="id"/>
+        <result column="provider_id" property="providerId"/>
+        <result column="provider_name" property="providerName"/>
+        <result column="model_name" property="modelName"/>
+        <result column="model_name_alias" property="modelNameAlias"/>
+        <result column="max_concurrency" property="maxConcurrency"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, provider_id, model_name, model_name_alias, max_concurrency, create_time, update_time
+    </sql>
+
+
+    <select id="selectByProviderId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" /> FROM g_provuider_model_mapping
+        WHERE provider_id = #{providerId}
+    </select>
+
+    <select id="selectByConditions" resultMap="MappingWithProviderResult">
+        SELECT
+        m.id,
+        m.provider_id,
+        p.provider_name,
+        m.model_name,
+        m.model_name_alias,
+        m.max_concurrency,
+        m.create_time,
+        m.update_time
+        FROM g_provuider_model_mapping m
+        LEFT JOIN g_model_provuider p ON m.provider_id = p.provider_id
+        <where>
+            <if test="providerName != null and providerName != ''">
+                AND p.provider_name LIKE CONCAT('%', #{providerName}, '%')
+            </if>
+            <if test="modelName != null and modelName != ''">
+                AND m.model_name LIKE CONCAT('%', #{modelName}, '%')
+            </if>
+        </where>
+        ORDER BY m.create_time DESC
+    </select>
+</mapper>

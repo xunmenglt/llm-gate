@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunmeng.llmgate.mapper.AccountBalanceLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xunmeng.llmgate.pojo.AccountBalanceLog">
+        <id column="id" property="id" />
+        <result column="log_id" property="logId" />
+        <result column="user_name" property="userName" />
+        <result column="type" property="type" />
+        <result column="delta_amount" property="deltaAmount" />
+        <result column="model_call_log_id" property="modelCallLogId" />
+        <result column="voucher_code" property="voucherCode" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, log_id, user_name, `type`, delta_amount, model_call_log_id, voucher_code, create_time, update_time
+    </sql>
+
+
+    <select id="selectByConditions" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" /> FROM g_account_balance_log
+        <where>
+            <if test="userName != null and userName != ''">
+                AND user_name = LIKE CONCAT('%', #{user_name}, '%')
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+</mapper>

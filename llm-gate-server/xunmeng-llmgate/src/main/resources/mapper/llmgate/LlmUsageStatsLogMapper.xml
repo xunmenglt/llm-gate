@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunmeng.llmgate.mapper.LlmUsageStatsLogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xunmeng.llmgate.pojo.LlmUsageStatsLog">
+        <id column="id" property="id" />
+        <result column="log_id" property="logId" />
+        <result column="provider_id" property="providerId" />
+        <result column="model_name" property="modelName" />
+        <result column="api_key" property="apiKey" />
+        <result column="input_tokens" property="inputTokens" />
+        <result column="ouput_tokens" property="ouputTokens" />
+        <result column="quota" property="quota" />
+        <result column="error" property="error" />
+        <result column="error_type" property="errorType" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, log_id, provider_id, model_name, api_key, input_tokens, ouput_tokens, quota, error, error_type, create_time, update_time
+    </sql>
+
+
+    <select id="selectByConditions" resultType="com.xunmeng.llmgate.pojo.dto.LlmUsageStatsLogDTO">
+        SELECT
+        log.log_id,
+        log.provider_id,
+        p.provider_name,
+        log.model_name,
+        log.api_key,
+        u.user_name,
+        log.input_tokens,
+        log.ouput_tokens,
+        log.quota,
+        log.error,
+        log.error_type,
+        log.create_time
+        FROM g_llm_usage_stats_log log
+        LEFT JOIN g_model_provuider p ON log.provider_id = p.provider_id
+        LEFT JOIN g_api_key k ON log.api_key = k.key
+        LEFT JOIN sys_user u ON k.user_name = u.user_name
+        <where>
+            <if test="providerName != null and providerName != ''">
+                AND p.provider_name LIKE CONCAT('%', #{providerName}, '%')
+            </if>
+            <if test="modelName != null and modelName != ''">
+                AND log.model_name LIKE CONCAT('%', #{modelName}, '%')
+            </if>
+            <if test="userName != null and userName != ''">
+                AND u.user_name LIKE CONCAT('%', #{userName}, '%')
+            </if>
+        </where>
+        ORDER BY log.create_time DESC
+    </select>
+
+    <select id="selectInSelfByConditions" resultType="com.xunmeng.llmgate.pojo.dto.LlmUsageStatsLogDTO">
+        SELECT
+        log.log_id,
+        log.provider_id,
+        p.provider_name,
+        log.model_name,
+        log.api_key,
+        u.user_name,
+        log.input_tokens,
+        log.ouput_tokens,
+        log.quota,
+        log.error,
+        log.error_type,
+        log.create_time
+        FROM g_llm_usage_stats_log log
+        LEFT JOIN g_model_provuider p ON log.provider_id = p.provider_id
+        LEFT JOIN g_api_key k ON log.api_key = k.key
+        LEFT JOIN sys_user u ON k.user_name = u.user_name
+        <where>
+            u.user_name = #{userName}
+            <if test="providerName != null and providerName != ''">
+                AND p.provider_name LIKE CONCAT('%', #{providerName}, '%')
+            </if>
+            <if test="modelName != null and modelName != ''">
+                AND log.model_name LIKE CONCAT('%', #{modelName}, '%')
+            </if>
+        </where>
+        ORDER BY log.create_time DESC
+    </select>
+
+    <select id="aggregateStatsByKey" resultType="com.xunmeng.llmgate.pojo.dto.LlmUsageStatsAggregateDTO">
+        SELECT
+            COUNT(*) AS totalCalls,
+            SUM(input_tokens) AS totalInputTokens,
+            SUM(ouput_tokens) AS totalOutputTokens,
+            SUM(quota) AS totalQuotaUsed,
+            SUM(CASE WHEN error = 1 THEN 1 ELSE 0 END) AS errorCalls
+        FROM g_llm_usage_stats_log
+        WHERE api_key = #{apiKey}
+    </select>
+
+</mapper>
