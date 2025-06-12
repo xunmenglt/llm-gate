@@ -80,7 +80,9 @@ public class OpenAIStreamHandler extends StreamHandler {
                 }
             } catch (Exception e) {
                 if (ctx!=null){
-                    ctx.fireExceptionCaught(new ModelProviderServerException("模型提供商非标准openai响应"));
+                    if (!(e instanceof IOException)){
+                        ctx.fireExceptionCaught(new ModelProviderServerException("模型提供商非标准openai响应"));
+                    }
                 }
             }
         });
@@ -93,7 +95,7 @@ public class OpenAIStreamHandler extends StreamHandler {
         if (msg instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) msg;
             log.info("响应状态: {}", response.status());
-            response.headers().forEach(h -> log.info("响应头: {}: {}", h.getKey(), h.getValue()));
+//            response.headers().forEach(h -> log.info("响应头: {}: {}", h.getKey(), h.getValue()));
             String contentEncoding = response != null
                     ? response.headers().get(HttpHeaderNames.CONTENT_ENCODING, "identity")
                     : "identity";
@@ -145,6 +147,9 @@ public class OpenAIStreamHandler extends StreamHandler {
         }
         if (ObjectUtils.isNotEmpty(reader)){
             reader.close();
+        }
+        if (ObjectUtils.isNotEmpty(executorService)){
+            executorService.shutdown();
         }
         super.channelInactive(ctx);
     }

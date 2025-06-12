@@ -24,18 +24,25 @@ public class LLMGateLimitHandler extends ChannelInboundHandlerAdapter {
         log.info("channel active: {}", ctx.channel().remoteAddress());
         int current = currentConnections.incrementAndGet();
         if (current > maxConnections) {
-            currentConnections.decrementAndGet();
-            throw new LLMGateRequestLimitException(String.format("连接数超过最大限制，拒绝连接！当前连接数：{}", current));
+            throw new LLMGateRequestLimitException(String.format("连接数超过最大限制，拒绝连接！当前连接数：%s", current-1));
+        }else {
+            log.info("新连接建立，当前连接数：{}", current);
+            super.channelActive(ctx);
         }
-        log.info("新连接建立，当前连接数：{}", current);
-        super.channelActive(ctx);
+
     }
 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        boolean isToNextInactive=true; // 根据当前状态是否属于阻塞时，决定是否执行接下来的channel inactive
+        if (currentConnections.get()>maxConnections){
+            isToNextInactive=false;
+        }
         int current = currentConnections.decrementAndGet();
         log.info("连接关闭，当前连接数：{}", current);
-        super.channelInactive(ctx);
+        if (isToNextInactive){
+            super.channelInactive(ctx);
+        }
     }
 }

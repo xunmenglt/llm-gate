@@ -77,6 +77,7 @@ public class CaptchaController {
         }
         ajx.put("uuid",uuid);
         ajx.put("img", Base64Utils.encodeToString(os.toByteArray()));
+        ajx.put("imageCode",code);
         return ajx;
     }
 }

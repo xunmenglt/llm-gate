@@ -1,0 +1,1 @@
+docker exec -i codura-mysql mysql -h127.0.0.1 -uroot -pllmgate llmgate < /docker-entrypoint-initdb.d/init.sql

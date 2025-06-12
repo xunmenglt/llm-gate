@@ -1,0 +1,50 @@
+version: '3.3'
+services:
+  llm-gate-server:
+    image: llm-gate-server:1.0
+    container_name: llm-gate-server
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8990:8990"
+      - "8080:8080"
+    networks:
+      - llmgate
+    volumes:
+      - ./server/config:/var/config
+      - ./server/data:/var/data
+    depends_on:
+      - llmgate-mysql
+      - llmgate-redis
+  
+  llmgate-mysql:
+    image: mysql:8.0.28
+    container_name: llmgate-mysql
+    networks:
+      - llmgate
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      # 默认root密码，仅首次运行有效
+      MYSQL_ROOT_PASSWORD: llmgate
+      MYSQL_USER: llmgate  # 创建一个用户
+      MYSQL_PASSWORD: llmgate  # 设置该用户的密码
+    volumes:
+      - ./mysql/sql:/docker-entrypoint-initdb.d # 映射脚本日志目录，宿主机:容器
+      - ./mysql/log:/var/log/mysql # 映射日志目录，宿主机:容器
+      - ./mysql/data:/var/lib/mysql # 映射数据目录，宿主机:容器
+      - ./mysql/conf.d:/etc/mysql/conf.d # 映射配置目录，宿主机:容器
+      - /etc/localtime:/etc/localtime:ro # 让容器的时钟与宿主机时钟同步，避免时间的问题，ro是read only的意思，就是只读。
+  llmgate-redis:
+    image: anolis-registry.cn-zhangjiakou.cr.aliyuncs.com/openanolis/redis:5.0.3-8.6
+    container_name: llmgate-redis
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - llmgate
+    volumes:
+      - ./redis/config:/opt/config # 映射配置目录，宿主机:容器
+      - ./redis/data:/data # 映射数据目录，宿主机:容器
+    command: ["redis-server", "/opt/config/redis.conf"]
+networks:
+  llmgate:

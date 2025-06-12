@@ -65,7 +65,7 @@ public class ApiKeyServiceImpl extends ServiceImpl<ApiKeyMapper, ApiKey> impleme
         // 仅当为有限额度时修改
         if (key.getUnlimited() == QuotaLimitType.LIMITED.getCode()) {
             double newQuota = key.getQuota() + delta;
-            if (newQuota < 0) return false; // 不允许为负
+//            if (newQuota < 0) return false; // 不允许为负
             key.setQuota(newQuota);
         }
 

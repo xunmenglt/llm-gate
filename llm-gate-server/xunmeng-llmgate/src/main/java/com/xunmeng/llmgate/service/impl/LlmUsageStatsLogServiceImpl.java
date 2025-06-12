@@ -2,6 +2,7 @@ package com.xunmeng.llmgate.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xunmeng.llmgate.enums.LlmErrorType;
+import com.xunmeng.llmgate.enums.QuotaLimitType;
 import com.xunmeng.llmgate.mapper.LlmUsageStatsLogMapper;
 import com.xunmeng.llmgate.pojo.Account;
 import com.xunmeng.llmgate.pojo.ApiKey;
@@ -81,6 +82,10 @@ public class LlmUsageStatsLogServiceImpl extends ServiceImpl<LlmUsageStatsLogMap
             throw  new RuntimeException("账户不存在");
         }
         boolean a=accountService.changeBalance(userId,-price);
+        // 减少apikey的余额
+        if (key.getUnlimited()== QuotaLimitType.LIMITED.getCode()){
+            apiKeyService.changeQuotaByKey(apiKey,-price);
+        }
         if (!a){
             throw  new RuntimeException("修改账户信息异常");
         }

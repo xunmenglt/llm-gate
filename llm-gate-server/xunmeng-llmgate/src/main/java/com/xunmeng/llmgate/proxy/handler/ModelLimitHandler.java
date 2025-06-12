@@ -30,29 +30,38 @@ public class ModelLimitHandler extends ChannelInboundHandlerAdapter {
         InvokingContext invokingContext = ctx.channel().attr(ChannelAttributes.INVOKING_CONTEXT).get();
         ModelProvuider modelProvuider = invokingContext.getModelProvuider();
         String concurrentID = getConcurrentID(modelProvuider);
-        AtomicInteger atomic = currentCountMap.getOrDefault(concurrentID, new AtomicInteger(0));
-        currentCountMap.put(concurrentID,atomic);
+        AtomicInteger atomic = currentCountMap.computeIfAbsent(concurrentID, k -> new AtomicInteger(0));
         int current = atomic.incrementAndGet();
         if (modelProvuider.getModelMapping().getMaxConcurrency()>0 && current > modelProvuider.getModelMapping().getMaxConcurrency()) {
-            atomic.decrementAndGet();
-            throw new ModelRequestLimitException(String.format("服务商【%s】提供的模型【%s】连接数超过最大限制，拒绝连接！当前连接数：%s", modelProvuider.getProviderName(),modelProvuider.getModelMapping().getModelName(),current));
+            throw new ModelRequestLimitException(String.format("服务商【%s】提供的模型【%s】连接数超过最大限制，拒绝连接！当前连接数：%s", modelProvuider.getProviderName(),modelProvuider.getModelMapping().getModelName(),current-1));
+        }else {
+            log.info("新连接建立，当前连接数：{}", current);
+            super.channelRead(ctx,msg);
         }
-        log.info("新连接建立，当前连接数：{}", current);
-        super.channelRead(ctx,msg);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         InvokingContext invokingContext = ctx.channel().attr(ChannelAttributes.INVOKING_CONTEXT).get();
+        boolean isToNextInactive=true; // 根据当前状态是否属于阻塞时，决定是否执行接下来的channel inactive
         if (invokingContext!=null){
             ModelProvuider modelProvuider = invokingContext.getModelProvuider();
             String concurrentID = getConcurrentID(modelProvuider);
             AtomicInteger atomicInteger = currentCountMap.get(concurrentID);
-            atomicInteger.decrementAndGet();
-            currentCountMap.put(concurrentID,atomicInteger);
-            log.info("连接关闭，当前连接数：{}", atomicInteger.get());
+            if (atomicInteger != null) {
+                if (modelProvuider.getModelMapping().getMaxConcurrency()>0 && atomicInteger.get() > modelProvuider.getModelMapping().getMaxConcurrency()) {
+                    isToNextInactive=false;
+                }
+                int val = atomicInteger.decrementAndGet();
+                log.info("连接关闭，当前连接数：{}", val);
+                currentCountMap.put(concurrentID,atomicInteger);
+            }else {
+                isToNextInactive=false;
+            }
         }
-        super.channelInactive(ctx);
+        if (isToNextInactive){
+            super.channelInactive(ctx);
+        }
     }
 
     private String getConcurrentID(ModelProvuider provuider){

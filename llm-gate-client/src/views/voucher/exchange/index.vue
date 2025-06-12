@@ -1,6 +1,6 @@
 <template>
   <div>
-    兑换码兑换
+    
   </div>
 </template>
 
