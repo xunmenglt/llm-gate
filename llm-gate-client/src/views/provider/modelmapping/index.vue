@@ -13,20 +13,14 @@
                 @keyup.enter.native="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="接口类型" prop="type">
-            <el-select
-                v-model="queryParams.enabled"
-                placeholder="类型"
+          <el-form-item label="模型名称" prop="modelName">
+            <el-input
+                v-model="queryParams.modelName"
+                placeholder="请输入提供商名称"
                 clearable
                 style="width: 240px"
-            >
-              <el-option
-                  v-for="dict in dict.sys_provider_type"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-              />
-            </el-select>
+                @keyup.enter.native="handleQuery"
+            />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -42,29 +36,33 @@
                 size="mini"
                 @click="handleAdd"
                 v-hasPermi="['system:user:add']"
-            >新增提供商</el-button>
+            >新增模型映射</el-button>
           </el-col>
           <el-col :span="1.5">
             <el-button
-                type="success"
+                type="danger"
                 plain
-                icon="el-icon-setting"
+                icon="el-icon-delete"
                 size="mini"
-                @click="handleAdd"
-            >前往模型映射</el-button>
+                :disabled="multiple"
+                @click="handleDelete"
+                v-hasPermi="['llmgate:apikey:delete']"
+            >删除</el-button>
           </el-col>
           <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
         </el-row>
-        <el-table v-loading="loading" :data="providerList">
+        <el-table v-loading="loading" :data="modelList" @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="50" align="center" />
           <el-table-column label="序号" align="center" type="index" width="50">
             <template slot-scope="scope">
               {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
             </template>
           </el-table-column>
-          <el-table-column label="提供商名称" align="center" key="providerName" prop="providerName" v-if="columns[0].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="接口类型" align="center" key="type" prop="type" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="并发上限" align="center" key="maxConcurrency" prop="maxConcurrency" v-if="columns[2].visible"  />
-          <el-table-column label="创建时间" align="center" prop="createTime" v-if="columns[3].visible" width="160">
+          <el-table-column label="模型名称" align="center" key="modelName" prop="modelName" v-if="columns[0].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="提供商名称" align="center" key="providerName" prop="providerName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="别名" align="center" key="modelNameAlias" prop="modelNameAlias" v-if="columns[2].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="并发上限" align="center" key="maxConcurrency" prop="maxConcurrency" v-if="columns[3].visible"  />
+          <el-table-column label="创建时间" align="center" prop="createTime" v-if="columns[4].visible" width="160">
             <template slot-scope="scope">
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
@@ -72,23 +70,10 @@
           <el-table-column
               label="操作"
               align="center"
-              width="300"
+              width="100"
               class-name="small-padding fixed-width"
           >
             <template slot-scope="scope">
-              <el-button
-                  size="mini"
-                  type="text"
-                  icon="el-icon-view"
-                  @click="handleModelDetail(scope.row)"
-              >详情</el-button>
-              <el-button
-                  size="mini"
-                  type="text"
-                  icon="el-icon-edit"
-                  @click="handleUpdate(scope.row)"
-                  v-hasPermi="['llmgate:provider:edit']"
-              >配置</el-button>
               <el-button
                   size="mini"
                   type="text"
@@ -110,25 +95,25 @@
       </el-col>
     </el-row>
 
-    <!-- 添加或修改用户配置对话框 -->
+    <!-- 添加配置对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="提供商名称" prop="providerName">
-              <el-input v-model="form.providerName" placeholder="请输入提供商名称" maxlength="50" />
+              <el-select v-model="form.providerName" placeholder="请选择模型提供商">
+                <el-option
+                    v-for="item in providerOptions"
+                    :key="item.providerId"
+                    :label="item.providerName"
+                    :value="item.providerName"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="接口类型" prop="type">
-              <el-select v-model="form.type" placeholder="请选择类型">
-                <el-option
-                    v-for="item in dict.sys_provider_type"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                />
-              </el-select>
+            <el-form-item label="模型名称" prop="modelName">
+              <el-input v-model="form.modelName" placeholder="请输入模型名称" maxlength="50" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -141,15 +126,8 @@
         </el-row>
         <el-row>
           <el-col :span="24">
-            <el-form-item label="API Key" prop="apiKey">
-              <el-input v-model="form.apiKey" placeholder="请输入 API Key" show-password />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="代理地址" prop="proxyUrl">
-              <el-input v-model="form.proxyUrl" placeholder="请输入代理地址" />
+            <el-form-item label="模型别名" prop="modelNameAlias">
+              <el-input v-model="form.modelNameAlias" placeholder="请输入模型别名"  />
             </el-form-item>
           </el-col>
         </el-row>
@@ -160,52 +138,27 @@
       </div>
     </el-dialog>
 
-    <!-- 提供商信息 -->
-    <el-dialog
-        title="提供商模型详情"
-        :visible.sync="modelDetailOpen"
-        width="600px"
-        append-to-body
-    >
-      <el-table :data="modelDetailList" border style="width: 100%">
-        <el-table-column label="模型名称" prop="modelName" />
-        <el-table-column label="别名">
-          <template slot-scope="scope">
-            <el-tag
-                v-for="(alias, index) in scope.row.alias"
-                :key="index"
-                type="info"
-                size="mini"
-                style="margin-right: 4px"
-            >
-              {{ alias }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="并发上限" prop="maxConcurrency" align="center" />
-      </el-table>
 
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="modelDetailOpen = false">关闭</el-button>
-      </div>
-    </el-dialog>
 
   </div>
 </template>
 
 <script>
-import { getProviders, getProviderDetail, deleteProvider, addProvider, updateProvider } from "@/api/llmgate/provider";
-
+import { modelMapList,addModelMap,delModelMap} from "@/api/llmgate/modelmap";
+import {getProviders} from "@/api/llmgate/provider";
 import {SYS_DICT, TOAST_POSITION, TOAST_TYPE} from '@/plugins/Constants'
 import RightToolbar from '@/components/RightToolbar'
 import Pagination from '@/components/Pagination'
 import { showTextMessage } from '@/plugins/toastification';
+
 
 export default {
   name: "Provider",
   components: { RightToolbar,Pagination },
   data() {
     return {
+      //提供商列表
+      providerOptions: [],
       modelDetailOpen: false,
       modelDetailList: [],
       // 是否更新
@@ -223,7 +176,7 @@ export default {
       // 总条数
       total: 0,
       // 用户表格数据
-      providerList: null,
+      modelList: null,
       // 弹出层标题
       title: "",
       // 部门树选项
@@ -253,19 +206,20 @@ export default {
         pageNum: 1,
         pageSize: 10,
         orderByColumn:'create_time',
-        type: undefined,
+        modelName: undefined,
         providerName: undefined,
       },
       // 列信息
       columns: [
-        { key: 1, label: `提供商名称`, visible: true },
-        { key: 2, label: `类型`, visible: true },
+        { key: 1, label: `模型名称`, visible: true },
+        { key: 2, label: `提供商名称`, visible: true },
+        { key: 3, label: `别名`, visible: true },
         { key: 4, label: `并发上限`, visible: true },
         { key: 6, label: `创建时间`, visible: true }
       ],
       // 表单校验
       rules: {
-
+        //pass
       },
       // 字典
       dict:SYS_DICT
@@ -273,23 +227,22 @@ export default {
   },
   created() {
     this.getList();
+    this.loadProviders();
   },
   methods: {
-    /** 查询用户列表 */
+    loadProviders() {
+      getProviders().then(response => {
+        this.providerOptions = response.rows || [];
+      });
+    },
     getList() {
       this.loading = true;
-      getProviders(this.queryParams).then(response => {
-            this.providerList = response.rows;
+      modelMapList(this.queryParams).then(response => {
+            this.modelList = response.rows;
             this.total = response.total;
             this.loading = false;
           }
       );
-    },
-    handleModelDetail(row) {
-      this.modelDetailOpen = true;
-      getProviderDetail(row.providerId).then(response => {
-        this.modelDetailList = response.data.models || [];
-      })
     },
 
 
@@ -302,10 +255,10 @@ export default {
     reset() {
       this.form = {
         providerName: undefined,
-        apiKey: undefined,
+        modelName: undefined,
         maxConcurrency: 1,
-        proxyUrl: undefined,
-        type:undefined
+        providerId: undefined,
+        modelNameAlias: undefined
       };
       this.resetForm("form");
     },
@@ -320,57 +273,61 @@ export default {
       this.resetForm("queryForm");
       this.handleQuery();
     },
-
+    // 多选框选中数据
+    handleSelectionChange(selection) {
+      this.ids = selection.map(item => item.id);
+      this.apikeyNames = selection.map(item => item.name);
+      this.single = selection.length !== 1;
+      this.multiple = !selection.length;
+    },
 
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
-      this.isUpdate=false;
+      this.isUpdate = false;
       this.open = true;
-      this.title = "添加提供商";
-    },
-    /** 修改按钮操作 */
-    handleUpdate(row) {
-      this.isUpdate=true
-      this.reset();
-      getProviderDetail(row.providerId).then(response => {
-        this.form = response.data.provider;
-        this.open = true;
-        this.title = "编辑提供商配置";
-      })
+      this.title = "添加模型映射";
     },
 
-    submitForm: function() {
+    submitForm: function () {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.isUpdate) {
-            updateProvider(this.form).then(response => {
-              showTextMessage(TOAST_TYPE.success,'修改成功',TOAST_POSITION.top)
-              this.open = false;
-              this.getList();
-            }).catch(e=>{
-              console.log(e)
-            });
-          } else {
-            addProvider(this.form).then(response => {
-              showTextMessage(TOAST_TYPE.success,'新增成功',TOAST_POSITION.top)
-              this.open = false;
-              this.getList();
-            });
-          }
+          getProviders({
+            pageNum: 1,
+            pageSize: 1,
+            providerName: this.form.providerName
+          }).then(response => {
+            if (response.rows && response.rows.length > 0) {
+              this.form.providerId = response.rows[0].providerId;
+              return addModelMap(this.form);
+            } else {
+              return Promise.reject(new Error("未找到匹配的提供商"));
+            }
+          }).then(() => {
+            showTextMessage(TOAST_TYPE.success, "新增成功", TOAST_POSITION.top);
+            this.open = false;
+            this.getList();
+          }).catch(error => {
+            console.error(error);
+            showTextMessage(TOAST_TYPE.error, "新增失败：" + error.message, TOAST_POSITION.top);
+          });
+
+
         }
+
       });
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const Id = row.id;
-      this.$modal.confirm('是否确认删除？').then(function() {
-        return deleteProvider(Id);
+      const Ids = row.id || this.ids;
+      this.$modal.confirm('是否确认删除？').then(function () {
+        return delModelMap(Ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
-      }).catch(() => {});
-    }
+      }).catch(() => {
+      });
+    },
   }
 };
 </script>
