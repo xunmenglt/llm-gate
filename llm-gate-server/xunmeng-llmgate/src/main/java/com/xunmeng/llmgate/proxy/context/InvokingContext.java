@@ -25,4 +25,11 @@ public class InvokingContext {
     private int proxyPort;
 
     private String proxyHost;
+
+    //区分日志；
+    private String requestId;
+
+    private Long inputLen;
+
+    private Long inputTokens;
 }

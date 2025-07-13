@@ -55,7 +55,7 @@ public class LlmUsageStatsLog implements Serializable {
 
     @ApiModelProperty(value = "补全消耗")
     @TableField("ouput_tokens")
-    private Long ouputTokens;
+    private Long outputTokens;
 
     @ApiModelProperty(value = "额度")
     private Double quota;
@@ -74,6 +74,15 @@ public class LlmUsageStatsLog implements Serializable {
     @ApiModelProperty(value = "更新时间")
     @TableField("update_time")
     private LocalDateTime updateTime;
+    @ApiModelProperty(value = "请求ID")
+    @TableField("request_id")
+    private String requestId;
 
+    @ApiModelProperty(value = "输入长度")
+    @TableField("input_len")
+    private Long inputLen;
 
+    @ApiModelProperty(value = "输出长度")
+    @TableField("output_len")
+    private Long outputLen;
 }

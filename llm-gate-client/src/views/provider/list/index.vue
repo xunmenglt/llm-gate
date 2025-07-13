@@ -44,15 +44,7 @@
                 v-hasPermi="['system:user:add']"
             >新增提供商</el-button>
           </el-col>
-          <el-col :span="1.5">
-            <el-button
-                type="success"
-                plain
-                icon="el-icon-setting"
-                size="mini"
-                @click="handleAdd"
-            >前往模型映射</el-button>
-          </el-col>
+
           <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
         </el-row>
         <el-table v-loading="loading" :data="providerList">

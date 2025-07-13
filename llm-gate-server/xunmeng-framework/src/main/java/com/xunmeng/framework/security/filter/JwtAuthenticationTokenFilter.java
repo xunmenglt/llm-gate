@@ -24,13 +24,24 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     private TokenService tokenService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        LoginUser loginUser=tokenService.getLoginUser(request);
-        if (StringUtils.isNotNull(loginUser) && StringUtils.isNull(SecurityUtils.getAuthentication())){
+        String uri = request.getRequestURI();
+//        System.out.println("uri:"+uri);
+        // 放行 /config/llmgate 接口，不做认证校验
+        if ("/config/llmgate".equals(uri)) {
+            filterChain.doFilter(request, response);
+//            System.out.println("uri:"+111);
+            return;
+        }
+
+        LoginUser loginUser = tokenService.getLoginUser(request);
+        if (StringUtils.isNotNull(loginUser) && StringUtils.isNull(SecurityUtils.getAuthentication())) {
             tokenService.verifyToken(loginUser);
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
+
         filterChain.doFilter(request, response);
     }
+
 }

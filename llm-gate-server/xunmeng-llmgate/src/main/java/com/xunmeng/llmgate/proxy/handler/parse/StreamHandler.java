@@ -22,6 +22,11 @@ public abstract class StreamHandler extends ChannelInboundHandlerAdapter {
 
     protected double quota=0.0;
 
+    protected long inputLen=0L;
+
+    protected long outputLen=0L;
+
+    protected boolean hasUsage = false;
     // 是否有错误
     protected boolean hasError=false;
 
@@ -41,10 +46,15 @@ public abstract class StreamHandler extends ChannelInboundHandlerAdapter {
             String providerId=invokingContext.getModelProvuider().getProviderId();
             String modelName=invokingContext.getModelProvuider().getModelMapping().getModelName();
             String apiKey=invokingContext.getApiKey().getKey();
+            String requestId=invokingContext.getRequestId();
+            inputLen = invokingContext.getInputLen();
+            if(!hasUsage) {
+                inputTokens = invokingContext.getInputTokens();
+            }
             ILlmUsageStatsLogService logService = SpringUtils.getBean(ILlmUsageStatsLogService.class);
             if (hasError){
                 logExecutorService.submit(()->{
-                    logService.doErrorLog(providerId,modelName,apiKey,errorType);
+                    logService.doErrorLog(providerId,modelName,apiKey,errorType,requestId,inputLen,outputLen);
                 });
             }else {
                 if (inputTokens>0||outputTokens>0){
@@ -52,7 +62,7 @@ public abstract class StreamHandler extends ChannelInboundHandlerAdapter {
                         // 获取倍率
                         IMultiplierService multiplierService = SpringUtils.getBean(IMultiplierService.class);
                         quota=multiplierService.calculatePrice(modelName,inputTokens,outputTokens);
-                        logService.doSuccessLog(providerId,modelName,apiKey,inputTokens,outputTokens,quota);
+                        logService.doSuccessLog(providerId,modelName,apiKey,inputTokens,outputTokens,quota,requestId,inputLen,outputLen);
                     });
                 }
             }

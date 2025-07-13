@@ -70,11 +70,11 @@ spring:
     # 地址
     host: 127.0.0.1
     # 端口，默认为6379
-    port: 6380
+    port: 6379
     # 数据库索引
     database: 0
     # 密码
-    password: codura
+    password: 123456
     # 连接超时时间
     timeout: 10s
     lettuce:
@@ -124,6 +124,7 @@ swagger:
   version: 1.0
 
 # 大模型服务网关
+
 llmgate:
   server:
     port: 8990

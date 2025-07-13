@@ -50,7 +50,9 @@ public class HttpRequestBodyAggregator extends ChannelInboundHandlerAdapter {
             } else {
                 throw new IllegalHttpRequestException("请求头异常");
             }
-        } finally {
+        }catch (Exception e){
+            log.error("请求头异常",e);
+        }finally {
             if (!handled) {
                 ReferenceCountUtil.release(msg); // 只释放未处理的消息
             }

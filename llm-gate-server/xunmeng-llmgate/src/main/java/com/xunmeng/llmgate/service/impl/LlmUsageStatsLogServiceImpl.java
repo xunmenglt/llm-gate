@@ -41,31 +41,36 @@ public class LlmUsageStatsLogServiceImpl extends ServiceImpl<LlmUsageStatsLogMap
     private IMultiplierService multiplierService;
 
     @Override
-    public List<LlmUsageStatsLogDTO> selectByConditions(String providerName, String modelName, String userName) {
-        return this.baseMapper.selectByConditions(providerName, modelName, userName);
+    public List<LlmUsageStatsLogDTO> selectByConditions(String providerName, String modelName, String userName,String requestId) {
+        return this.baseMapper.selectByConditions(providerName, modelName, userName,requestId);
     }
 
     @Override
-    public List<LlmUsageStatsLogDTO> selectInSelfByConditions(String providerName, String modelName, String userId) {
-        return this.baseMapper.selectInSelfByConditions(providerName, modelName, userId);
+    public List<LlmUsageStatsLogDTO> selectInSelfByConditions(String providerName, String modelName, String userId,String requestId) {
+        return this.baseMapper.selectInSelfByConditions(providerName, modelName, userId,requestId);
     }
+
 
     @Override
     public boolean doLog(String logId,String providerId, String modelName, String apiKey,
                          Long inputTokens, Long outputTokens, double quota,
-                         boolean isError, LlmErrorType errorType) {
+                         boolean isError, LlmErrorType errorType,String requestId,Long inputLen,Long outputLen) {
         LlmUsageStatsLog log = new LlmUsageStatsLog();
         log.setLogId(logId);
         log.setProviderId(providerId);
         log.setModelName(modelName);
         log.setApiKey(apiKey);
         log.setInputTokens(inputTokens != null ? inputTokens : 0L);
-        log.setOuputTokens(outputTokens != null ? outputTokens : 0L);
+        log.setOutputTokens(outputTokens != null ? outputTokens : 0L);
         log.setQuota(quota);
         log.setError(isError ? 1 : 0);
         log.setErrorType(errorType != null ? errorType.getCode() : LlmErrorType.UNKNOWN.getCode());
         log.setCreateTime(LocalDateTime.now());
         log.setUpdateTime(LocalDateTime.now());
+        log.setRequestId(requestId);
+        log.setInputLen(inputLen);
+        log.setOutputLen(outputLen);
+
         return this.save(log);
     }
 
@@ -73,7 +78,7 @@ public class LlmUsageStatsLogServiceImpl extends ServiceImpl<LlmUsageStatsLogMap
     @Override
     @Transactional
     public boolean doSuccessLog(String providerId, String modelName, String apiKey,
-                                Long inputTokens, Long outputTokens, double quota) {
+                                Long inputTokens, Long outputTokens, double quota,String requestId,Long inputLen,Long outputLen) {
         double price=multiplierService.calculatePrice(modelName,inputTokens,outputTokens);
         ApiKey key = apiKeyService.getInfoByKey(apiKey);
         String userId=key.getUserName();
@@ -92,15 +97,15 @@ public class LlmUsageStatsLogServiceImpl extends ServiceImpl<LlmUsageStatsLogMap
         // 写入日志
         String logId = IdAndCodeGenerator.generateLogId();
         accountBalanceLogService.doModelCallLog(userId,-price,logId);
-        boolean b = doLog(logId,providerId, modelName, apiKey, inputTokens, outputTokens, price, false, null);
+        boolean b = doLog(logId,providerId, modelName, apiKey, inputTokens, outputTokens, price, false, null,requestId,inputLen,outputLen);
         return b;
     }
 
     @Override
     public boolean doErrorLog(String providerId, String modelName, String apiKey,
-                              LlmErrorType errorType) {
+                              LlmErrorType errorType,String requestId,Long inputLen,Long outputLen) {
         String logId = IdAndCodeGenerator.generateLogId();
 
-        return doLog(logId,providerId, modelName, apiKey, 0L, 0L, 0.0, true, errorType);
+        return doLog(logId,providerId, modelName, apiKey, 0L, 0L, 0.0, true, errorType,requestId,inputLen,outputLen);
     }
 }

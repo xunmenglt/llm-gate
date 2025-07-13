@@ -1,5 +1,6 @@
 package com.xunmeng.llmgate.proxy;
 
+import cn.hutool.extra.tokenizer.TokenizerEngine;
 import com.xunmeng.llmgate.proxy.handler.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -58,7 +59,7 @@ public class LLMGateServer implements ApplicationListener<ApplicationStartedEven
         ServerBootstrap bootstrap = new ServerBootstrap();
         EventLoopGroup bossGroup = new NioEventLoopGroup(mianThreadNum);
         EventLoopGroup workerGroup = new NioEventLoopGroup(workThreadNum);
-
+        //加一个拦截器，将输入的长度和返回的长度存入数据库（要求传入token）
         bootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeOut)

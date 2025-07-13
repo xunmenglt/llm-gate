@@ -1,5 +1,9 @@
 package com.xunmeng.llmgate.proxy.handler;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.extra.tokenizer.TokenizerEngine;
+import cn.hutool.extra.tokenizer.TokenizerUtil;
+import cn.hutool.extra.tokenizer.Word;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xunmeng.llmgate.proxy.attributes.ChannelAttributes;
@@ -14,6 +18,8 @@ import io.netty.handler.codec.http.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 
+import java.util.Iterator;
+
 @Slf4j
 public class ParamValidationHandler extends ChannelInboundHandlerAdapter {
 
@@ -23,6 +29,7 @@ public class ParamValidationHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         RequestContext requestContext = ctx.channel().attr(ChannelAttributes.REQUEST_CONTEXT).get();
         InvokingContext invokingContext = ctx.channel().attr(ChannelAttributes.INVOKING_CONTEXT).get();
+
 
         if (requestContext.getMethod() != HttpMethod.POST) {
             throw new LLMGateNotImplementedException("仅支持 POST 方法");
@@ -43,13 +50,62 @@ public class ParamValidationHandler extends ChannelInboundHandlerAdapter {
             if (!jsonNode.has("model") || jsonNode.get("model").asText().isEmpty()) {
                 throw new ModelNotFoundException("缺少 model 参数");
             }
-
+            if (!jsonNode.has("requestId") || jsonNode.get("requestId").asText().isEmpty()) {
+                throw new BadRequestException("缺少 requestId 参数");
+            }
             invokingContext.setModelName(jsonNode.get("model").asText());
+            invokingContext.setRequestId(jsonNode.get("requestId").asText());
+            invokingContext.setInputLen(MessageLengthCounter(body));
+            invokingContext.setInputTokens(MessageTokensCounter(body));
             ctx.fireChannelRead(msg); // 只调用一次
         } catch (Exception e) {
             log.warn("请求体 JSON 解析失败: {}", body, e);
             throw new BadRequestException("请求体不是合法 JSON 格式");
         }
+    }
+
+    private Long MessageLengthCounter(String body) {
+        Long totalLength = 0L;
+
+        try {
+            JsonNode jsonNode = objectMapper.readTree(body);
+            if (!jsonNode.has("messages") ) {
+                throw new ModelNotFoundException("缺少 messages 参数");
+            }
+            JsonNode messages = jsonNode.get("messages");
+            for (JsonNode msg : messages) {
+                String content = msg.get("content").asText();
+                totalLength += content.length();
+            }
+        }catch (Exception e) {
+            log.warn("请求体 JSON 解析失败: {}", body, e);
+            throw new BadRequestException("请求体不是合法 JSON 格式");
+        }
+
+        return totalLength;
+    }
+
+    private Long MessageTokensCounter(String body) {
+        Long totalToken = 0L;
+        TokenizerEngine tokenizerEngine = TokenizerUtil.createEngine();
+        try {
+            JsonNode jsonNode = objectMapper.readTree(body);
+            if (!jsonNode.has("messages") ) {
+                throw new ModelNotFoundException("缺少 messages 参数");
+            }
+            JsonNode messages = jsonNode.get("messages");
+            for (JsonNode msg : messages) {
+                String content = msg.get("content").asText();
+                Iterator<Word> words = tokenizerEngine.parse(content);
+                int size = CollUtil.size(words);
+                totalToken += Long.valueOf(size);
+            }
+        }catch (Exception e) {
+            log.warn("请求体 JSON 解析失败: {}", body, e);
+            throw new BadRequestException("请求体不是合法 JSON 格式");
+        }
+
+        return totalToken;
     }
 }
 

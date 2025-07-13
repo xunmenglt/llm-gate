@@ -17,13 +17,13 @@ module.exports = defineConfig({
     }
   },
   devServer:{
-    port: 8082,
+    port: 8081,
     // 跨域代理
     proxy:{
-      '/api': { // 代理标识符，匹配以 /api 开头的请求
+      '/_api': { // 代理标识符，匹配以 /api 开头的请求
         target: process.env.VUE_APP_BASE_API, // 目标服务器地址
         changeOrigin: true, // 是否跨域
-        pathRewrite: { '^/api': '' }, // 将 /api 重写为空
+        pathRewrite: { '^/_api': '' }, // 将 /api 重写为空
       },
     }
   },

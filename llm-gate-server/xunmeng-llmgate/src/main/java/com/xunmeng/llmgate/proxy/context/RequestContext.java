@@ -16,6 +16,7 @@ public class RequestContext {
     private String traceId;     // 可用于链路追踪
     private String userId;      // 可结合用户认证模块填充
 
+
     private HttpHeaders headers;
 
     private Map<String, List<String>> queryParams;

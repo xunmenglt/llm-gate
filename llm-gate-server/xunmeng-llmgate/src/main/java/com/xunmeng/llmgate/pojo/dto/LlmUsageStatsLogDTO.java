@@ -13,7 +13,9 @@ public class LlmUsageStatsLogDTO {
     private String apiKey;
     private String userName;
     private Long inputTokens;
-    private Long ouputTokens;
+    private Long outputTokens;
+    private Long inputLen;
+    private Long outputLen;
     private Double quota;
     private Integer error;
     private String errorType;

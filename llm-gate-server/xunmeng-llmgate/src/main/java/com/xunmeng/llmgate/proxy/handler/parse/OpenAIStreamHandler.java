@@ -1,5 +1,9 @@
 package com.xunmeng.llmgate.proxy.handler.parse;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.extra.tokenizer.TokenizerEngine;
+import cn.hutool.extra.tokenizer.TokenizerUtil;
+import cn.hutool.extra.tokenizer.Word;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xunmeng.llmgate.model.response.OpenAIStreamResponse;
@@ -14,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -21,6 +27,8 @@ import java.util.zip.GZIPInputStream;
 
 @Slf4j
 public class OpenAIStreamHandler extends StreamHandler {
+
+    private TokenizerEngine tokenizerEngine = TokenizerUtil.createEngine();
 
     private final PipedOutputStream pipeOut;
     private final PipedInputStream pipeIn;
@@ -164,12 +172,27 @@ public class OpenAIStreamHandler extends StreamHandler {
         try {
             OpenAIStreamResponse response = mapper.readValue(jsonDataStr, OpenAIStreamResponse.class);
             OpenAIStreamResponse.Usage usage = response.getUsage();
+
             if (ObjectUtils.isNotEmpty(usage)){
                 int promptTokens = usage.getPromptTokens();
                 int completionTokens = usage.getCompletionTokens();
                 inputTokens+=promptTokens;
                 outputTokens+=completionTokens;
+                hasUsage = true;
             }
+            List<OpenAIStreamResponse.Choice> choices = response.getChoices();
+            for (OpenAIStreamResponse.Choice choice : choices) {
+                OpenAIStreamResponse.Delta delta = choice.getDelta();
+                if (delta != null && delta.getContent() != null) {
+                    outputLen += delta.getContent().length();
+                    if(!hasUsage){
+                        Iterator<Word> words = tokenizerEngine.parse(delta.getContent());
+                        int size = CollUtil.size(words);
+                        outputTokens += Long.valueOf(size);
+                    }
+                }
+            }
+
         } catch (Exception e) {
             log.error("模型提供商响应内容解析异常");
             throw new ModelProviderServerException("模型提供商非标准openai响应");

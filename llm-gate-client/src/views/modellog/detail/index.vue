@@ -51,7 +51,7 @@
           <el-table-column label="模型名称" align="center" key="modelName" prop="modelName" v-if="columns[3].visible" :show-overflow-tooltip="true" />
           <el-table-column label="apikey" align="center" key="apiKey" prop="apiKey" v-if="columns[4].visible" :show-overflow-tooltip="true" />
           <el-table-column label="输入消耗" align="center" key="inputTokens" prop="inputTokens" v-if="columns[5].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="回复消耗" align="center" key="ouputTokens" prop="ouputTokens" v-if="columns[6].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="回复消耗" align="center" key="ouputTokens" prop="outputTokens" v-if="columns[6].visible" :show-overflow-tooltip="true" />
           <el-table-column
             label="消耗额度"
             align="center"

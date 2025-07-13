@@ -2,7 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xunmeng.llmgate.mapper.LlmUsageStatsLogMapper">
 
-    <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.xunmeng.llmgate.pojo.LlmUsageStatsLog">
         <id column="id" property="id" />
         <result column="log_id" property="logId" />
@@ -10,7 +9,9 @@
         <result column="model_name" property="modelName" />
         <result column="api_key" property="apiKey" />
         <result column="input_tokens" property="inputTokens" />
-        <result column="ouput_tokens" property="ouputTokens" />
+        <result column="ouput_tokens" property="outputTokens" /> <!-- 保持旧字段拼写 -->
+        <result column="input_len" property="inputLen" />
+        <result column="output_len" property="outputLen" />
         <result column="quota" property="quota" />
         <result column="error" property="error" />
         <result column="error_type" property="errorType" />
@@ -20,9 +21,12 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, log_id, provider_id, model_name, api_key, input_tokens, ouput_tokens, quota, error, error_type, create_time, update_time
+        id, log_id, provider_id, model_name, api_key,
+        input_tokens, ouput_tokens AS outputTokens,
+        input_len, output_len,
+        quota, error, error_type,
+        create_time, update_time
     </sql>
-
 
     <select id="selectByConditions" resultType="com.xunmeng.llmgate.pojo.dto.LlmUsageStatsLogDTO">
         SELECT
@@ -33,7 +37,9 @@
         log.api_key,
         u.user_name,
         log.input_tokens,
-        log.ouput_tokens,
+        log.ouput_tokens AS outputTokens,
+        log.input_len,
+        log.output_len,
         log.quota,
         log.error,
         log.error_type,
@@ -43,6 +49,9 @@
         LEFT JOIN g_api_key k ON log.api_key = k.key
         LEFT JOIN sys_user u ON k.user_name = u.user_name
         <where>
+            <if test="requestId != null and requestId != ''">
+                AND log.request_id = #{requestId}
+            </if>
             <if test="providerName != null and providerName != ''">
                 AND p.provider_name LIKE CONCAT('%', #{providerName}, '%')
             </if>
@@ -56,6 +65,7 @@
         ORDER BY log.create_time DESC
     </select>
 
+    <!-- 查询当前用户自己的调用日志 -->
     <select id="selectInSelfByConditions" resultType="com.xunmeng.llmgate.pojo.dto.LlmUsageStatsLogDTO">
         SELECT
         log.log_id,
@@ -65,7 +75,9 @@
         log.api_key,
         u.user_name,
         log.input_tokens,
-        log.ouput_tokens,
+        log.ouput_tokens AS outputTokens,
+        log.input_len,
+        log.output_len,
         log.quota,
         log.error,
         log.error_type,
@@ -76,6 +88,9 @@
         LEFT JOIN sys_user u ON k.user_name = u.user_name
         <where>
             u.user_name = #{userName}
+            <if test="requestId != null and requestId != ''">
+                AND log.request_id = #{requestId}
+            </if>
             <if test="providerName != null and providerName != ''">
                 AND p.provider_name LIKE CONCAT('%', #{providerName}, '%')
             </if>
