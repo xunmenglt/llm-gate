@@ -12,15 +12,7 @@
                 @keyup.enter.native="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="创建者" prop="userName">
-            <el-input
-                v-model="queryParams.userName"
-                placeholder="请输入创建者名称"
-                clearable
-                style="width: 200px"
-                @keyup.enter.native="handleQuery"
-            />
-          </el-form-item>
+
           <el-form-item label="状态" prop="status">
             <el-select
                 v-model="queryParams.status"
@@ -43,14 +35,39 @@
           </el-form-item>
         </el-form>
         <el-row :gutter="10" class="mb8">
+          <el-col :span="1.5">
+            <el-button
+                type="primary"
+                plain
+                icon="el-icon-plus"
+                size="mini"
+                @click="handleAdd"
+
+            >创建新的APIKEY</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button
+                type="danger"
+                plain
+                icon="el-icon-delete"
+                size="mini"
+                :disabled="multiple"
+                @click="handleDelete"
+
+            >删除</el-button>
+          </el-col>
           <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
         </el-row>
         <el-table v-loading="loading" :data="apikeyList" @selection-change="handleSelectionChange">
-
+          <el-table-column type="selection" width="50" align="center" />
+          <el-table-column label="序号" align="center" type="index" width="50">
+            <template slot-scope="scope">
+              {{ (queryParams.pageNum - 1) * queryParams.pageSize + scope.$index + 1 }}
+            </template>
+          </el-table-column>
           <el-table-column label="名称" align="center" key="name" prop="name" v-if="columns[0].visible" :show-overflow-tooltip="true"/>
-          <el-table-column label="创建者" align="center" key="userName" prop="userName" v-if="columns[1].visible" :show-overflow-tooltip="true"/>
-          <el-table-column label="apikey" align="center" key="key" prop="key" v-if="columns[6].visible" :show-overflow-tooltip="true"/>
-          <el-table-column label="状态" align="center" key="status" prop="status" v-if="columns[2].visible">
+
+          <el-table-column label="状态" align="center" key="status" prop="status" v-if="columns[1].visible">
             <template slot-scope="scope">
               <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
                 {{ scope.row.status === 1 ? '已启用' : '已禁用' }}
@@ -62,19 +79,19 @@
               align="center"
               key="quota"
               prop="quota"
-              v-if="columns[3].visible"
+              v-if="columns[2].visible"
           >
             <template slot-scope="scope">
               <span v-if="scope.row.unlimited === 1">无限制</span>
               <span v-else>{{ scope.row.quota }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" align="center" prop="createTime" v-if="columns[4].visible" width="160">
+          <el-table-column label="创建时间" align="center" prop="createTime" v-if="columns[3].visible" width="160">
             <template slot-scope="scope">
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="过期时间" align="center" prop="expiresTime" v-if="columns[5].visible" width="160">
+          <el-table-column label="过期时间" align="center" prop="expiresTime" v-if="columns[4].visible" width="160">
             <template slot-scope="scope">
               <span>{{ scope.row.expiresTime === null ? '永不过期' : parseTime(scope.row.expiresTime) }}</span>
             </template>
@@ -83,6 +100,7 @@
           <el-table-column
               label="操作"
               align="center"
+              width="300"
               class-name="small-padding fixed-width"
           >
             <template slot-scope="scope">
@@ -92,20 +110,20 @@
                   icon="el-icon-copy-document"
                   @click="handleCopy(scope.row)"
               >复制</el-button>
-<!--              <el-button-->
-<!--                  size="mini"-->
-<!--                  type="text"-->
-<!--                  :icon="scope.row.status === 1 ? 'el-icon-close' : 'el-icon-check'"-->
-<!--                  @click="handleStatusChange(scope.row)"-->
-<!--                  v-hasPermi="['llmgate:apikey:edit']"-->
-<!--              >{{ scope.row.status === 1? '禁用' : '启用' }}</el-button>-->
-<!--              <el-button-->
-<!--                  size="mini"-->
-<!--                  type="text"-->
-<!--                  icon="el-icon-edit"-->
-<!--                  @click="handleEdit(scope.row)"-->
-<!--                  v-hasPermi="['llmgate:apikey:edit']"-->
-<!--              >编辑</el-button>-->
+              <el-button
+                  size="mini"
+                  type="text"
+                  :icon="scope.row.status === 1 ? 'el-icon-close' : 'el-icon-check'"
+                  @click="handleStatusChange(scope.row)"
+
+              >{{ scope.row.status === 1? '禁用' : '启用' }}</el-button>
+              <el-button
+                  size="mini"
+                  type="text"
+                  icon="el-icon-edit"
+                  @click="handleEdit(scope.row)"
+
+              >编辑</el-button>
               <el-button
                   size="mini"
                   type="text"
@@ -194,7 +212,7 @@
 </template>
 
 <script>
-import { getApiKeyList, addApiKey, updateApiKey, deleteApiKey, getApiKeyDetail,getApiKeySelfList  } from "@/api/llmgate/apikey";
+import {  addApiKey, updateApiKey, deleteApiKey, getApiKeyDetail,getApiKeySelfList  } from "@/api/llmgate/apikey";
 import { SYS_DICT, TOAST_POSITION, TOAST_TYPE } from '@/plugins/Constants'
 import RightToolbar from '@/components/RightToolbar'
 import Pagination from '@/components/Pagination'
@@ -247,7 +265,7 @@ export default {
         totalCalls: 0,
         errorCalls: null,
         totalQuotaUsed: null,
-        remark: '',
+        remark: ''
       },
       // 查询参数
       queryParams: {
@@ -260,12 +278,10 @@ export default {
       // 列信息
       columns: [
         { key: 0, label: `名称`, visible: true },
-        { key: 1, label: `创建者`, visible: true },
         { key: 2, label: `状态`, visible: true },
         { key: 3, label: `额度限制`, visible: true },
         { key: 4, label: `创建时间`, visible: true },
-        { key: 5, label: `过期时间`, visible: true },
-        { key: 6, label: `apikey`, visible: true }
+        { key: 5, label: `过期时间`, visible: true }
       ],
       // 表单校验
       rules: {
@@ -295,7 +311,7 @@ export default {
         { label: '总输出 Tokens', value: this.detailForm.totalOutputTokens ?? '无数据' },
         { label: '错误调用次数', value: this.detailForm.errorCalls ?? '无数据' },
         { label: '已用额度', value: this.detailForm.totalQuotaUsed ?? '无数据' },
-        { label: '备注', value: this.detailForm.remark || '无' },
+        { label: '备注', value: this.detailForm.remark || '无' }
       ];
     }
   },
@@ -304,7 +320,7 @@ export default {
     /** 查询令牌列表 */
     getList() {
       this.loading = true;
-      getApiKeyList(this.queryParams).then(response => {
+      getApiKeySelfList(this.queryParams).then(response => {
         this.apikeyList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -378,7 +394,7 @@ export default {
       this.reset();
       const apikey = row.key;
       getApiKeyDetail(apikey).then(response => {
-        this.form = response.data.apiKeyInfo;
+        Object.assign(this.form, response.data.apiKeyInfo);
         this.form.unlimitedType = this.form.unlimited === 1 ? '1' : '0';
         this.form.expiresTimeType = this.form.expiresTime === null ? '1' : '0';
         this.open = true;

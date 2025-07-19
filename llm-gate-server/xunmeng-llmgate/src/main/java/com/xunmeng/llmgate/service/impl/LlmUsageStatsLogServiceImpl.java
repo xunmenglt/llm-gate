@@ -41,16 +41,18 @@ public class LlmUsageStatsLogServiceImpl extends ServiceImpl<LlmUsageStatsLogMap
     private IMultiplierService multiplierService;
 
     @Override
-    public List<LlmUsageStatsLogDTO> selectByConditions(String providerName, String modelName, String userName,String requestId) {
-        return this.baseMapper.selectByConditions(providerName, modelName, userName,requestId);
+    public List<LlmUsageStatsLogDTO> selectByConditions(String providerName, String modelName, String userName) {
+        return this.baseMapper.selectByConditions(providerName, modelName, userName);
     }
 
     @Override
-    public List<LlmUsageStatsLogDTO> selectInSelfByConditions(String providerName, String modelName, String userId,String requestId) {
-        return this.baseMapper.selectInSelfByConditions(providerName, modelName, userId,requestId);
+    public List<LlmUsageStatsLogDTO> selectInSelfByConditions(String providerName, String modelName, String userName) {
+        return this.baseMapper.selectInSelfByConditions(providerName, modelName, userName);
     }
-
-
+    @Override
+    public LlmUsageStatsLogDTO selectByRequestId(String requestId) {
+        return this.baseMapper.selectByRequestId(requestId);
+    }
     @Override
     public boolean doLog(String logId,String providerId, String modelName, String apiKey,
                          Long inputTokens, Long outputTokens, double quota,

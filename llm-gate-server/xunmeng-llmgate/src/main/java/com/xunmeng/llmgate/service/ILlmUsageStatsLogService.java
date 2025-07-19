@@ -17,11 +17,11 @@ import java.util.List;
  */
 public interface ILlmUsageStatsLogService extends IService<LlmUsageStatsLog> {
 
-    List<LlmUsageStatsLogDTO> selectByConditions(String providerName, String modelName, String userName,String requestId);
+    List<LlmUsageStatsLogDTO> selectByConditions(String providerName, String modelName, String userName);
 
-    List<LlmUsageStatsLogDTO> selectInSelfByConditions(String providerName, String modelName, String userId,String requestId);
+    List<LlmUsageStatsLogDTO> selectInSelfByConditions(String providerName, String modelName, String userId);
 
-
+    LlmUsageStatsLogDTO selectByRequestId(String requestId);
 
     boolean doLog(String logId,String providerId, String modeName, String api_key, Long input_tokens, Long output_tokens, double quota, boolean isError, LlmErrorType errorType, String requestId,Long inputLen,Long outputLen);
 

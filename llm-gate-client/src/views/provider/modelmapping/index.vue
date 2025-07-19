@@ -194,7 +194,7 @@ export default {
       // 角色选项
       roleOptions: [],
       // 表单参数
-      form: {},
+
       defaultProps: {
         children: "children",
         label: "label"
@@ -217,9 +217,28 @@ export default {
         { key: 4, label: `并发上限`, visible: true },
         { key: 6, label: `创建时间`, visible: true }
       ],
-      // 表单校验
+      form: {
+        providerName: '',
+        modelName: '',
+        maxConcurrency: 1,
+        modelNameAlias: ''
+      },
       rules: {
-        //pass
+        providerName: [
+          { required: true, message: '请选择模型提供商', trigger: 'change' }
+        ],
+        modelName: [
+          { required: true, message: '请输入模型名称', trigger: 'blur' },
+          { max: 50, message: '长度不能超过 50 个字符', trigger: 'blur' }
+        ],
+        maxConcurrency: [
+          { type: 'number', required: true, message: '请输入并发上限', trigger: 'change' },
+          { type: 'number', min: 1, max: 100, message: '并发上限需在 1 到 100 之间', trigger: 'change' }
+        ],
+        modelNameAlias: [
+          { required: false },
+          { max: 50, message: '长度不能超过 50 个字符', trigger: 'blur' }
+        ]
       },
       // 字典
       dict:SYS_DICT

@@ -6,8 +6,8 @@
           <div>当前账户余额：<strong style="color: #409EFF;">{{ currentBalance.toFixed(2) }}</strong> 元</div>
         </el-card>
         <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-          <el-form-item label="用户名称" prop="userName">
-            <el-input
+          <el-form-item v-hasRole="['admin']" label="用户名称" prop="userName">
+            <el-input v-hasRole="['admin']"
                 v-model="queryParams.userName"
                 placeholder="请输入用户名称"
                 clearable
@@ -42,8 +42,8 @@
 
         <el-table v-loading="loading" :data="accountList" >
           <el-table-column label="日志Id" align="center" key="logId" prop="logId" v-if="columns[0].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="用户名称" align="center" key="userName" prop="userName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="类型" align="center" key="type" prop="type" v-if="columns[2].visible"  >
+          <el-table-column  label="用户名称" align="center" key="userName" prop="userName" v-if="isAdmin&&columns[4].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="类型" align="center" key="type" prop="type" v-if="columns[1].visible"  >
             <template slot-scope="scope">
               {{ typeMap[scope.row.type]|| scope.row.type }}
             </template>
@@ -53,12 +53,12 @@
               align="center"
               key="deltaAmount"
               prop="deltaAmount"
-              v-if="columns[3].visible">
+              v-if="columns[2].visible">
             <template slot-scope="scope">
               {{ scope.row.deltaAmount.toFixed(5)}}
             </template>
           </el-table-column>
-          <el-table-column label="时间" align="center" prop="createTime" v-if="columns[4].visible" width="160">
+          <el-table-column label="时间" align="center" prop="createTime" v-if="columns[3].visible" width="160">
             <template slot-scope="scope">
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
@@ -97,6 +97,7 @@ export default {
         SYSTEM_ADJUST: '系统调整',
         ADMIN_RECHARGE: '管理员充值'
       },
+      isAdmin: false, // 是否是管理员
       //当前余额
       currentBalance:0.0,
       // 更新
@@ -136,14 +137,22 @@ export default {
         pageNum: 1,
         pageSize: 10,
         orderByColumn:'create_time',
+        isAsc:'desc',
         userName: undefined,
         type: undefined,
         logId: undefined
       },
+      columns:[],
       // 列信息
-      columns: [
+      columns_admin: [
         { key: 1, label: `日志Id`, visible: true },
-        { key: 2, label: `用户名称`, visible: true },
+        { key: 4, label: `类型`, visible: true },
+        { key: 5, label: `余额变化`, visible: true },
+        { key: 6, label: `时间`, visible: true },
+        { key: 2, label: `用户名称`, visible: true }
+      ],
+      columns_user: [
+        { key: 1, label: `日志Id`, visible: true },
         { key: 4, label: `类型`, visible: true },
         { key: 5, label: `余额变化`, visible: true },
         { key: 6, label: `时间`, visible: true }
@@ -153,16 +162,32 @@ export default {
     };
   },
   created() {
+    this.initUserRole();
     this.getList();
   },
   methods: {
+    initUserRole() {
+      const roles = this.$store.getters.roles;
+      if (roles && roles.length > 0) {
+        // 判断是否管理员
+        this.isAdmin = roles.includes('admin');
+
+      } else {
+        this.isAdmin = false;
+      }
+      this.columns = this.isAdmin?this.columns_admin:this.columns_user;
+    },
+
     /** 查询用户列表 */
     getList() {
       this.loading = true;
       getBalance().then(response => {
         this.currentBalance = response.data;
       });
-      getAccountLog(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
+      if(!this.isAdmin){
+        this.queryParams.userName = this.$store.getters.name;
+      }
+      getAccountLog(this.queryParams).then(response => {
             this.accountList = response.rows;
             this.total = response.total;
             this.loading = false;

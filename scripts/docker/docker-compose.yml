@@ -17,7 +17,24 @@ services:
     depends_on:
       - llmgate-mysql
       - llmgate-redis
-  
+
+  llm-gate-client:
+    image: llm-gate-client:1.0
+    container_name: llm-gate-client
+    build:
+        context: ./ui
+        dockerfile: Dockerfile
+    networks:
+        - llmgate
+    ports:
+        - 8001:80
+    environment:
+        VUE_APP_BASE_API: http://llm-gate-server:8080
+    volumes:
+        - ./ui/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+        - llm-gate-server
+
   llmgate-mysql:
     image: mysql:8.0.28
     container_name: llmgate-mysql

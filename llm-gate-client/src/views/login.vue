@@ -4,7 +4,7 @@
       <div class="logo-header">
         <img :src="logo" class="logo-img" />
         <div class="logo-text-group">
-          <div class="logo-text">Codura</div>
+          <div class="logo-text">智能网关</div>
           <div class="logo-subtext">让团队协作更高效，让代码更可信</div>
         </div>
       </div>

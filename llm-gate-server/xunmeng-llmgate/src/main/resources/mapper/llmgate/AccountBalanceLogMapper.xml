@@ -22,10 +22,11 @@
 
 
     <select id="selectByConditions" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List" /> FROM g_account_balance_log
+        SELECT <include refid="Base_Column_List" />
+        FROM g_account_balance_log
         <where>
             <if test="userName != null and userName != ''">
-                AND user_name = LIKE CONCAT('%', #{user_name}, '%')
+                AND user_name LIKE CONCAT('%', #{userName}, '%')
             </if>
             <if test="type != null and type != ''">
                 AND type = #{type}
@@ -33,4 +34,5 @@
         </where>
         ORDER BY create_time DESC
     </select>
+
 </mapper>

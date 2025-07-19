@@ -49,9 +49,6 @@
         LEFT JOIN g_api_key k ON log.api_key = k.key
         LEFT JOIN sys_user u ON k.user_name = u.user_name
         <where>
-            <if test="requestId != null and requestId != ''">
-                AND log.request_id = #{requestId}
-            </if>
             <if test="providerName != null and providerName != ''">
                 AND p.provider_name LIKE CONCAT('%', #{providerName}, '%')
             </if>
@@ -88,9 +85,6 @@
         LEFT JOIN sys_user u ON k.user_name = u.user_name
         <where>
             u.user_name = #{userName}
-            <if test="requestId != null and requestId != ''">
-                AND log.request_id = #{requestId}
-            </if>
             <if test="providerName != null and providerName != ''">
                 AND p.provider_name LIKE CONCAT('%', #{providerName}, '%')
             </if>
@@ -99,6 +93,30 @@
             </if>
         </where>
         ORDER BY log.create_time DESC
+    </select>
+
+    <select id="selectByRequestId"
+            resultType="com.xunmeng.llmgate.pojo.dto.LlmUsageStatsLogDTO">
+        SELECT
+            log.log_id,
+            log.provider_id,
+            p.provider_name,
+            log.model_name,
+            log.api_key,
+            u.user_name,
+            log.input_tokens,
+            log.ouput_tokens AS outputTokens,
+            log.input_len,
+            log.output_len,
+            log.quota,
+            log.error,
+            log.error_type,
+            log.create_time
+        FROM g_llm_usage_stats_log log
+                 LEFT JOIN g_model_provuider p ON log.provider_id = p.provider_id
+                 LEFT JOIN g_api_key k ON log.api_key = k.key
+                 LEFT JOIN sys_user u ON k.user_name = u.user_name
+        WHERE log.request_id = #{requestId}
     </select>
 
     <select id="aggregateStatsByKey" resultType="com.xunmeng.llmgate.pojo.dto.LlmUsageStatsAggregateDTO">

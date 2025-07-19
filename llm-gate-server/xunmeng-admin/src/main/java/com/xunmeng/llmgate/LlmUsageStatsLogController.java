@@ -1,6 +1,7 @@
 package com.xunmeng.llmgate;
 
 
+import com.xunmeng.common.annotation.Anonymous;
 import com.xunmeng.common.core.controller.BaseController;
 import com.xunmeng.common.core.page.TableDataInfo;
 import com.xunmeng.common.core.pojo.AjaxResult;
@@ -35,10 +36,10 @@ public class LlmUsageStatsLogController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo list(@RequestParam(required = false) String providerName,
                               @RequestParam(required = false) String modelName,
-                              @RequestParam(required = false) String userName,
-                              @RequestParam(required = false) String requestId) {
+                              @RequestParam(required = false) String userName
+                           ) {
         startPage();
-        List<LlmUsageStatsLogDTO> list = logService.selectByConditions(providerName, modelName, userName,requestId);
+        List<LlmUsageStatsLogDTO> list = logService.selectByConditions(providerName, modelName, userName);
         return getDataTable(list);
     }
 
@@ -46,25 +47,26 @@ public class LlmUsageStatsLogController extends BaseController {
     @ApiOperation("获取个人调用日志列表")
     @GetMapping("/selflist")
     public TableDataInfo selflist(@RequestParam(required = false) String providerName,
-                              @RequestParam(required = false) String modelName,
-                                  @RequestParam(required = false) String requestId) {
+                              @RequestParam(required = false) String modelName
+                                ) {
         startPage();
-        String userId = getUserId();
+        String userName = getUserId();
 
-        List<LlmUsageStatsLogDTO> list = logService.selectInSelfByConditions(providerName, modelName,userId,requestId);
+        List<LlmUsageStatsLogDTO> list = logService.selectInSelfByConditions(providerName, modelName,userName);
         return getDataTable(list);
     }
 
-//    @ApiOperation("根据 requestId 获取调用日志详情")
-//    @GetMapping("/detail/{requestId}")
-//    public AjaxResult getLogDetail(@PathVariable String requestId) {
-//
-//        LlmUsageStatsLogDTO log = logService.selectByRequestId(requestId);
-//        if (log != null) {
-//            return AjaxResult.success(log);
-//        } else {
-//            return AjaxResult.error("未找到对应日志记录");
-//        }
-//    }
+    @ApiOperation("根据 requestId 获取调用日志详情")
+    @GetMapping("/detail/{requestId}")
+    @Anonymous
+    public AjaxResult getLogDetail(@PathVariable String requestId) {
+
+        LlmUsageStatsLogDTO log = logService.selectByRequestId(requestId);
+        if (log != null) {
+            return AjaxResult.success(log);
+        } else {
+            return AjaxResult.error("未找到对应日志记录");
+        }
+    }
 
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/llm-gate-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-admin/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-admin/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-framework/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-framework/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-generator/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-generator/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-llmgate/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-llmgate/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-system/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/llm-gate-server/xunmeng-system/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

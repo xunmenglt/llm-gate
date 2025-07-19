@@ -8,7 +8,7 @@ function resolve(dir) {
 // 请求基础路径
 process.env.VUE_APP_BASE_API="http://localhost:8080"
 process.env.VUE_APP_BOFRE_API="http://localhost:8081"
-process.env.VUE_APP_NAME="Codura"
+process.env.VUE_APP_NAME="智能网关"
 module.exports = defineConfig({
   pages:{
     index:{

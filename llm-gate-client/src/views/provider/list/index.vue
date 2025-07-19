@@ -232,8 +232,7 @@ export default {
       postOptions: [],
       // 角色选项
       roleOptions: [],
-      // 表单参数
-      form: {},
+
       defaultProps: {
         children: "children",
         label: "label"
@@ -255,9 +254,32 @@ export default {
         { key: 4, label: `并发上限`, visible: true },
         { key: 6, label: `创建时间`, visible: true }
       ],
-      // 表单校验
+      form: {
+        providerName: '',
+        type: '',
+        maxConcurrency: 1,
+        apiKey: '',
+        proxyUrl: ''
+      },
       rules: {
-
+        providerName: [
+          { required: true, message: '请输入提供商名称', trigger: 'blur' },
+          { max: 50, message: '长度不能超过 50 个字符', trigger: 'blur' }
+        ],
+        type: [
+          { required: true, message: '请选择接口类型', trigger: 'change' }
+        ],
+        maxConcurrency: [
+          { type: 'number', required: true, message: '请输入并发上限', trigger: 'change' },
+          { type: 'number', min: 1, max: 100, message: '并发上限需在 1 到 100 之间', trigger: 'change' }
+        ],
+        apiKey: [
+          { required: true, message: '请输入 API Key', trigger: 'blur' }
+        ],
+        proxyUrl: [
+          { required: false },
+          { type: 'url', message: '请输入正确的 URL 地址', trigger: 'blur' }
+        ]
       },
       // 字典
       dict:SYS_DICT

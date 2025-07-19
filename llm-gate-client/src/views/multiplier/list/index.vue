@@ -212,8 +212,7 @@ export default {
       deptName: undefined,
       // 日期范围
       dateRange: [],
-      // 表单参数
-      form: {},
+
       defaultProps: {
         children: "children",
         label: "label"
@@ -233,8 +232,28 @@ export default {
         { key: 4, label: `倍率`, visible: true },
         { key: 5, label: `时间`, visible: true }
       ],
-      rules:{
-
+      form: {
+        modelName: '',
+        inputPrivice: 0,
+        outputPrivice: 0,
+        rate: 1
+      },
+      rules: {
+        modelName: [
+          { required: true, message: '请选择模型', trigger: 'change' }
+        ],
+        inputPrivice: [
+          { type: 'number', required: true, message: '请输入输入定价', trigger: 'blur' },
+          { type: 'number', min: 0, max: 10, message: '输入定价需在 0 ~ 10 之间', trigger: 'blur' }
+        ],
+        outputPrivice: [
+          { type: 'number', required: true, message: '请输入回复定价', trigger: 'blur' },
+          { type: 'number', min: 0, max: 10, message: '回复定价需在 0 ~ 10 之间', trigger: 'blur' }
+        ],
+        rate: [
+          { type: 'number', required: true, message: '请输入倍率', trigger: 'blur' },
+          { type: 'number', min: 1, max: 10, message: '倍率需在 1 ~ 10 之间', trigger: 'blur' }
+        ]
       },
       // 字典
       dict:SYS_DICT

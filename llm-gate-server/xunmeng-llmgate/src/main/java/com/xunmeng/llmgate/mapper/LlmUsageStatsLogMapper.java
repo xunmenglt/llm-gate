@@ -20,14 +20,13 @@ public interface LlmUsageStatsLogMapper extends BaseMapper<LlmUsageStatsLog> {
 
     List<LlmUsageStatsLogDTO> selectByConditions(@Param("providerName") String providerName,
                                                  @Param("modelName") String modelName,
-                                                 @Param("userName") String userName,
-                                                 @Param("requestId") String requestId);
+                                                 @Param("userName") String userName);
 
     List<LlmUsageStatsLogDTO> selectInSelfByConditions(@Param("providerName") String providerName,
                                                        @Param("modelName") String modelName,
-                                                       @Param("userName") String userName,
-                                                       @Param("requestId") String requestId);
+                                                       @Param("userName") String userName
+                                                       );
 
-
+    LlmUsageStatsLogDTO selectByRequestId(@Param("requestId") String requestId);
     LlmUsageStatsAggregateDTO aggregateStatsByKey(@Param("apiKey") String apiKey);
 }

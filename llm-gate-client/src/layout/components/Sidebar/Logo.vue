@@ -9,7 +9,7 @@
         <div class="sidebar-logo-full" v-if="logo">
           <div class="full-container">
             <img  :src="logo"  class="sidebar-logo" />
-            <h1 class="app-name"> {{$app_name}} </h1>
+            <h2 class="app-name"> {{$app_name}} </h2>
           </div>
         </div>
       </router-link>
@@ -90,9 +90,9 @@ export default {
         vertical-align: middle;
         margin-right: 10px;
       }
-      & h1{
+      & h2{
         width: 50%;
-        font-size: 30px;
+        font-size: 20px;
         font-weight: 500;
         background: linear-gradient(to right, #2563eb, #22c55e);
         -webkit-background-clip: text;

@@ -4,15 +4,7 @@
       <el-col :span="24">
 
         <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="75px">
-          <el-form-item label="用户名称" prop="userName">
-            <el-input
-                v-model="queryParams.userName"
-                placeholder="请输入用户名称"
-                clearable
-                style="width: 200px"
-                @keyup.enter.native="handleQuery"
-            />
-          </el-form-item>
+
           <el-form-item label="提供商" prop="providerName" >
             <el-input
                 v-model="queryParams.providerName"
@@ -46,18 +38,18 @@
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="用户名称" align="center" key="userName" prop="userName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="提供商名称" align="center" key="providerName" prop="providerName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="模型名称" align="center" key="modelName" prop="modelName" v-if="columns[3].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="apikey" align="center" key="apiKey" prop="apiKey" v-if="columns[4].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="输入消耗" align="center" key="inputTokens" prop="inputTokens" v-if="columns[5].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="回复消耗" align="center" key="ouputTokens" prop="outputTokens" v-if="columns[6].visible" :show-overflow-tooltip="true" />
+<!--          <el-table-column label="用户名称" align="center" key="userName" prop="userName" v-if="columns[1].visible" :show-overflow-tooltip="true" />-->
+          <el-table-column label="提供商名称" align="center" key="providerName" prop="providerName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="模型名称" align="center" key="modelName" prop="modelName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="apikey" align="center" key="apiKey" prop="apiKey" v-if="columns[3].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="输入消耗" align="center" key="inputTokens" prop="inputTokens" v-if="columns[4].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="回复消耗" align="center" key="ouputTokens" prop="outputTokens" v-if="columns[5].visible" :show-overflow-tooltip="true" />
           <el-table-column
             label="消耗额度"
             align="center"
             key="quota"
             prop="quota"
-            v-if="columns[7].visible">
+            v-if="columns[6].visible">
           <template slot-scope="scope">
             {{ scope.row.quota.toFixed(5)}}
           </template>
@@ -117,8 +109,7 @@ export default {
       deptName: undefined,
       // 日期范围
       dateRange: [],
-      // 表单参数
-      form: {},
+
       defaultProps: {
         children: "children",
         label: "label"
@@ -131,12 +122,11 @@ export default {
         providerName:undefined,
         modelName:undefined,
         userName: undefined,
-        isAsc:'desc'
+        isAsc:'desc',
       },
       // 列信息
       columns: [
         { key: 1, label: `时间`, visible: true },
-        { key: 8, label: `用户名称`, visible: true},
         { key: 2, label: `提供商名称`, visible: true },
         { key: 3, label: `模型名称`, visible: true },
         { key: 4, label: `apikey`, visible: true },
@@ -156,7 +146,7 @@ export default {
     getList() {
       this.loading = true;
 
-      getModelLog(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
+      getModelSelfLog(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
             this.modelLogList = response.rows;
             this.total = response.total;
             this.loading = false;
@@ -168,22 +158,8 @@ export default {
       if (!value) return true;
       return data.label.indexOf(value) !== -1;
     },
-    // 节点单击事件
-    handleNodeClick(data) {
-      this.queryParams.deptId = data.id;
-      this.handleQuery();
-    },
-    // 用户状态修改
-    handleStatusChange(row) {
-      let text = row.enabled === 1 ? "启用" : "停用";
-      this.$modal.confirm('确认要"' + text + '""' + row.userName + '"用户吗？').then(function() {
-        return changeUserStatus(row.userName, row.enabled);
-      }).then(() => {
-        this.$modal.msgSuccess(text + "成功");
-      }).catch(function() {
-        row.enabled = row.enabled === "0" ? "1" : "0";
-      });
-    },
+
+
     // 取消按钮
     cancel() {
       this.open = false;

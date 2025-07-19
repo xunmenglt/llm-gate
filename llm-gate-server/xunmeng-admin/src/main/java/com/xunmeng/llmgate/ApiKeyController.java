@@ -69,7 +69,7 @@ public class ApiKeyController extends BaseController {
      * 新增 API-KEY
      */
     @ApiOperation("创建 API-KEY")
-    @PreAuthorize("@ss.hasPermi('llmgate:apikey:add')")
+//    @PreAuthorize("@ss.hasPermi('llmgate:apikey:add')")
     @Log(title = "API-KEY 管理", businessType = BusinessType.INSERT)
     @PostMapping("/add")
     public AjaxResult add(@Validated @RequestBody ApiKey key) {
@@ -90,7 +90,7 @@ public class ApiKeyController extends BaseController {
      * 更新 API-KEY 信息
      */
     @ApiOperation("修改 API-KEY 信息")
-    @PreAuthorize("@ss.hasPermi('llmgate:apikey:edit')")
+//    @PreAuthorize("@ss.hasPermi('llmgate:apikey:edit')")
     @Log(title = "API-KEY 编辑", businessType = BusinessType.UPDATE)
     @PutMapping("/update")
     public AjaxResult update(@Validated @RequestBody ApiKey key) {
@@ -102,7 +102,7 @@ public class ApiKeyController extends BaseController {
      * 删除 API-KEY
      */
     @ApiOperation("删除 API-KEY")
-    @PreAuthorize("@ss.hasPermi('llmgate:apikey:delete')")
+//    @PreAuthorize("@ss.hasPermi('llmgate:apikey:delete')")
     @Log(title = "API-KEY 删除", businessType = BusinessType.DELETE)
     @DeleteMapping("/delete/{ids}")
     public AjaxResult delete(@PathVariable Long[] ids) {
@@ -111,7 +111,7 @@ public class ApiKeyController extends BaseController {
 
     @GetMapping("/usage-summary/{apiKey}")
     @ApiOperation("获取 API-KEY 使用统计信息")
-    @PreAuthorize("@ss.hasPermi('llmgate:apikey:summary')")
+//    @PreAuthorize("@ss.hasPermi('llmgate:apikey:summary')")
     public AjaxResult getApiKeyUsageSummary(@PathVariable String apiKey) {
         ApiKeyUsageSummaryDTO dto = apiKeyService.getUsageSummary(apiKey);
         return AjaxResult.success(dto);
